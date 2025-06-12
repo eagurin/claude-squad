@@ -1,123 +1,219 @@
-# Claude Squad [![CI](https://github.com/smtg-ai/claude-squad/actions/workflows/build.yml/badge.svg)](https://github.com/smtg-ai/claude-squad/actions/workflows/build.yml) [![GitHub Release](https://img.shields.io/github/v/release/smtg-ai/claude-squad)](https://github.com/smtg-ai/claude-squad/releases/latest)
+# Claude Squad
 
-[Claude Squad](https://smtg-ai.github.io/claude-squad/) is a terminal app that manages multiple [Claude Code](https://github.com/anthropics/claude-code), [Codex](https://github.com/openai/codex) (and other local agents including [Aider](https://github.com/Aider-AI/aider)) in separate workspaces, allowing you to work on multiple tasks simultaneously.
+> Manage multiple AI agents like Claude Code, Aider, Codex, and Amp simultaneously
 
+[![Go Version](https://img.shields.io/badge/go-1.21+-blue.svg)](https://golang.org)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
+[![Release](https://img.shields.io/github/v/release/smtg-ai/claude-squad)](https://github.com/smtg-ai/claude-squad/releases)
 
-![Claude Squad Screenshot](assets/screenshot.png)
+## What is Claude Squad?
 
-### Highlights
-- Complete tasks in the background (including yolo / auto-accept mode!)
-- Manage instances and tasks in one terminal window
-- Review changes before applying them, checkout changes before pushing them
-- Each task gets its own isolated git workspace, so no conflicts
+Claude Squad is a terminal user interface (TUI) that allows you to run multiple AI coding agents in parallel, each working in isolated environments using tmux sessions and git worktrees.
 
-<br />
+**Key Features:**
+- 🔄 **Parallel execution** - Run multiple AI agents simultaneously
+- 🌿 **Git isolation** - Each agent works in its own git worktree
+- 📊 **Real-time monitoring** - See the progress of all agents
+- 🎯 **Task management** - Assign different tasks to different agents
+- 💻 **Terminal UI** - Clean, intuitive interface built with Bubble Tea
 
-https://github.com/user-attachments/assets/aef18253-e58f-4525-9032-f5a3d66c975a
-
-<br />
+## Quick Start
 
 ### Installation
 
-Both Homebrew and manual installation will install Claude Squad as `cs` on your system.
-
-#### Homebrew
-
 ```bash
-brew install claude-squad
-ln -s "$(brew --prefix)/bin/claude-squad" "$(brew --prefix)/bin/cs"
+# Install via Homebrew (macOS/Linux)
+brew install smtg-ai/claude-squad/claude-squad
+
+# Or install from source
+go install github.com/smtg-ai/claude-squad@latest
+
+# Or download binary from releases
+curl -L https://github.com/smtg-ai/claude-squad/releases/latest/download/claude-squad-linux-amd64 -o claude-squad
+chmod +x claude-squad
 ```
 
-#### Manual
-
-Claude Squad can also be installed by running the following command:
+### Basic Usage
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/smtg-ai/claude-squad/main/install.sh | bash
+# Start Claude Squad TUI
+claude-squad
+
+# Or use the shorter alias
+cs
+
+# Run with auto-yes mode (experimental)
+cs -y
+
+# Use a specific program
+cs -p "aider --model claude-3-5-sonnet"
 ```
 
-This puts the `cs` binary in `~/.local/bin`.
+### Web Interface
 
-To use a custom name for the binary:
+Claude Squad also includes a modern web interface built with Next.js:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/smtg-ai/claude-squad/main/install.sh | bash -s -- --name <your-binary-name>
+# Navigate to web directory
+cd web/
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Open http://localhost:3000
 ```
+
+## How it Works
+
+1. **Create a new agent**: Press `n` in the TUI or create through web interface
+2. **Choose your AI tool**: Claude Code, Aider, Codex, or any custom program
+3. **Describe your task**: Tell the agent what you want to accomplish
+4. **Monitor progress**: Watch in real-time as the agent works
+5. **Review changes**: See git diffs before applying changes
+
+Each agent:
+- Runs in an isolated tmux session
+- Works in its own git worktree (branch)
+- Can be monitored independently
+- Preserves state between sessions
+
+## Supported AI Agents
+
+- **Claude Code** - Anthropic's powerful coding assistant
+- **Aider** - AI pair programming tool
+- **GitHub Codex** - OpenAI's code generation model  
+- **Custom programs** - Any command-line tool you specify
+
+## Configuration
+
+Claude Squad can be configured via:
+
+- Command-line flags
+- Environment variables
+- Configuration files in `~/.claude-squad/`
+
+### Key Commands
+
+| Key | Action |
+|-----|--------|
+| `n` | Create new agent |
+| `Enter` | View agent details |
+| `d` | Delete agent |
+| `r` | Restart agent |
+| `↑/↓` | Navigate agents |
+| `Tab` | Switch between Preview/Diff |
+| `q` | Quit |
+
+## Examples
+
+### Web Development Team
+```bash
+# Frontend developer
+cs -p "claude" --task "Create React login component"
+
+# Backend developer  
+cs -p "aider" --task "Build user authentication API"
+
+# QA engineer
+cs -p "claude" --task "Write comprehensive tests"
+```
+
+### Code Review
+```bash
+# Multiple perspectives on the same codebase
+cs -p "claude" --task "Review for security issues"
+cs -p "aider" --task "Optimize for performance"  
+cs -p "claude" --task "Improve code documentation"
+```
+
+## Architecture
+
+```
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│     TUI     │────│   Session    │────│    tmux     │
+│  (Bubble)   │    │   Manager    │    │   Session   │
+└─────────────┘    └──────────────┘    └─────────────┘
+       │                   │                   │
+       │                   │                   │
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│ Web Interface│────│ Git Worktree │────│ AI Agent    │
+│  (Next.js)  │    │  Management  │    │ (Claude/etc)│
+└─────────────┘    └──────────────┘    └─────────────┘
+```
+
+## Development
 
 ### Prerequisites
+- Go 1.21+
+- tmux
+- git
 
-- [tmux](https://github.com/tmux/tmux/wiki/Installing)
-- [gh](https://cli.github.com/)
-
-### Usage
-
-```
-Usage:
-  cs [flags]
-  cs [command]
-
-Available Commands:
-  completion  Generate the autocompletion script for the specified shell
-  debug       Print debug information like config paths
-  help        Help about any command
-  reset       Reset all stored instances
-  version     Print the version number of claude-squad
-
-Flags:
-  -y, --autoyes          [experimental] If enabled, all instances will automatically accept prompts for claude code & aider
-  -h, --help             help for claude-squad
-  -p, --program string   Program to run in new instances (e.g. 'aider --model ollama_chat/gemma3:1b')
-```
-
-Run the application with:
+### Building from Source
 
 ```bash
-cs
+git clone https://github.com/smtg-ai/claude-squad.git
+cd claude-squad
+go build -o cs main.go
 ```
 
-<br />
+### Running Tests
 
-<b>Using Claude Squad with other AI assistants:</b>
-- For [Codex](https://github.com/openai/codex): Set your API key with `export OPENAI_API_KEY=<your_key>`
-- Launch with specific assistants:
-   - Codex: `cs -p "codex"`
-   - Aider: `cs -p "aider ..."`
-- Make this the default, by modifying the config file (locate with `cs debug`)
+```bash
+go test ./...
+```
 
-<br />
+### Web Development
 
-#### Menu
-The menu at the bottom of the screen shows available commands: 
+```bash
+cd web/
+npm install
+npm run dev
+```
 
-##### Instance/Session Management
-- `n` - Create a new session
-- `N` - Create a new session with a prompt
-- `D` - Kill (delete) the selected session
-- `↑/j`, `↓/k` - Navigate between sessions
+## Contributing
 
-##### Actions
-- `↵/o` - Attach to the selected session to reprompt
-- `ctrl-q` - Detach from session
-- `s` - Commit and push branch to github
-- `c` - Checkout. Commits changes and pauses the session
-- `r` - Resume a paused session
-- `?` - Show help menu
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-##### Navigation
-- `tab` - Switch between preview tab and diff tab
-- `q` - Quit the application
-- `shift-↓/↑` - scroll in diff view
+## Troubleshooting
 
-### How It Works
+### Common Issues
 
-1. **tmux** to create isolated terminal sessions for each agent
-2. **git worktrees** to isolate codebases so each session works on its own branch
-3. A simple TUI interface for easy navigation and management
+**Agent not responding:**
+```bash
+# Check tmux sessions
+tmux list-sessions
 
-### License
+# Reset all agents
+cs reset
+```
 
-[AGPL-3.0](LICENSE.md)
+**Git worktree issues:**
+```bash
+# Clean up worktrees
+git worktree prune
 
-### Star History
+# Reset storage
+rm -rf ~/.claude-squad/storage.json
+```
 
-[![Star History Chart](https://api.star-history.com/svg?repos=smtg-ai/claude-squad&type=Date)](https://www.star-history.com/#smtg-ai/claude-squad&Date)
+**Web interface not loading:**
+```bash
+# Reinstall dependencies
+cd web/
+rm -rf node_modules package-lock.json
+npm install
+```
+
+## License
+
+Claude Squad is open source software licensed under the [MIT License](LICENSE.md).
+
+## Links
+
+- [GitHub Repository](https://github.com/smtg-ai/claude-squad)
+- [Documentation](https://github.com/smtg-ai/claude-squad/wiki)
+- [Issues](https://github.com/smtg-ai/claude-squad/issues)
+- [Releases](https://github.com/smtg-ai/claude-squad/releases)

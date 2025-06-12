@@ -1,0 +1,54 @@
+name: Claude Local Assistant
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  claude-local:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude-local')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude-local')) ||
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude-local'))
+    runs-on: self-hosted  # Использует твой локальный runner
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Process with local Claude
+        run: |
+          # Извлекаем комментарий
+          COMMENT="${{ github.event.comment.body || github.event.issue.body }}"
+          ISSUE_NUMBER="${{ github.event.issue.number || github.event.pull_request.number }}"
+          
+          # Убираем @claude-local из комментария
+          PROMPT=$(echo "$COMMENT" | sed 's/@claude-local//')
+          
+          # Сохраняем промпт в файл
+          echo "$PROMPT" > /tmp/claude-prompt.txt
+          
+          # Вызываем локальный Claude bridge
+          python3 scripts/claude-github-bridge.py /tmp/claude-prompt.txt
+          
+          # Читаем ответ
+          RESPONSE=$(cat /tmp/claude-response.txt)
+          
+      - name: Post response
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.issue.number || context.payload.pull_request.number;
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: issue_number,
+              body: '🤖 Claude Local: Response will be implemented once bridge is set up'
+            });

@@ -1,0 +1,33 @@
+name: Test Self-Hosted Runner
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: self-hosted
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: System Info
+        run: |
+          echo "🖥️ Running on self-hosted macOS ARM64"
+          echo "Runner: ${{ runner.name }}"
+          echo "OS: ${{ runner.os }}"
+          echo "Arch: ${{ runner.arch }}"
+          uname -a
+          
+      - name: Test Go
+        run: |
+          go version
+          go test ./... -v
+          
+      - name: Test Build
+        run: |
+          go build -o claude-squad ./main.go
+          ./claude-squad --version
